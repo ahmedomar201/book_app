@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 class BookListItem extends StatefulWidget {
@@ -51,24 +52,29 @@ class _BookListItemState extends State<BookListItem> {
   Widget buildCoverImage() {
     return widget.coverImageUrl != null
         ? ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: Image.network(
-              widget.coverImageUrl!,
-              width: 80,
-              height: 120,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => placeholderImage(),
-            ),
-          )
+          borderRadius: BorderRadius.circular(4),
+          child: CachedNetworkImage(
+            imageUrl: widget.coverImageUrl!,
+            width: 80,
+            height: 120,
+            fit: BoxFit.cover,
+            // Uses built‑in disk/memory cache; shows graceful fallbacks offline/failed.
+            placeholder: (_, __) => placeholderImage(isLoading: true),
+            errorWidget: (_, __, ___) => placeholderImage(),
+          ),
+        )
         : placeholderImage();
   }
 
-  Widget placeholderImage() {
+  Widget placeholderImage({bool isLoading = false}) {
     return Container(
       width: 80,
       height: 120,
       color: Colors.grey[200],
-      child: const Icon(Icons.book, size: 40),
+      child:
+          isLoading
+              ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
+              : const Icon(Icons.book, size: 40),
     );
   }
 
@@ -78,10 +84,7 @@ class _BookListItemState extends State<BookListItem> {
       children: [
         Text(
           widget.title,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
@@ -112,7 +115,7 @@ class _BookListItemState extends State<BookListItem> {
         ),
         const SizedBox(height: 4),
         Text(
-          widget.summary??'',
+          widget.summary ?? '',
           maxLines: isExpanded ? null : 3,
           overflow: isExpanded ? null : TextOverflow.ellipsis,
         ),
